@@ -9,6 +9,21 @@ namespace VoiceRecognitionMaui
     private readonly ISpeechToText _speechToText;
     private bool _isListening = false;
     private CancellationTokenSource? _cancellationTokenSource;
+    //private static Dictionary<string, string> LanguageCodes = new()
+    //{
+    //  { "English (United States)", "en-US" },
+    //  { "Spanish (Spain)", "es-ES" },
+    //  { "French (France)", "fr-FR" },
+    //  { "German (Germany)", "de-DE" },
+    //  { "Chinese (Simplified)", "zh-CN" },
+    //  { "Japanese (Japan)", "ja-JP" },
+    //  { "Korean (South Korea)", "ko-KR" },
+    //  { "Portuguese (Brazil)", "pt-BR" },
+    //  { "Russian (Russia)", "ru-RU" },
+    //  { "Italian (Italy)", "it-IT" },
+    //  { "Hebrew (Israel)", "he-IL" }
+    //};
+    private string _selectedLanguage = "fr-FR";
 
     public MainPage()
     {
@@ -43,10 +58,19 @@ namespace VoiceRecognitionMaui
         _cancellationTokenSource = new CancellationTokenSource();
         _isListening = true;
         btnRecord.Text = "Stop Recording";
-        lblRecognition.Text = "Listening...";
+        lblRecognition.Text = $"Listening in {_selectedLanguage}...";
+
+        var culture = new CultureInfo(_selectedLanguage);
+        
+        System.Diagnostics.Debug.WriteLine($"=== SPEECH RECOGNITION DEBUG ===");
+        System.Diagnostics.Debug.WriteLine($"Selected language: {_selectedLanguage}");
+        System.Diagnostics.Debug.WriteLine($"Culture created: {culture.Name}");
+        System.Diagnostics.Debug.WriteLine($"Culture display name: {culture.DisplayName}");
+        System.Diagnostics.Debug.WriteLine($"Platform: {DeviceInfo.Platform}");
+        System.Diagnostics.Debug.WriteLine($"================================");
 
         var recognitionResult = await _speechToText.ListenAsync(
-          CultureInfo.CurrentCulture,
+          culture,
           new Progress<string>(partialText =>
           {
             lblRecognition.Text = partialText;
@@ -55,7 +79,8 @@ namespace VoiceRecognitionMaui
 
         if (recognitionResult.IsSuccessful)
         {
-          lblRecognition.Text = recognitionResult.Text;
+          lblRecognition.Text = $"[{_selectedLanguage}] {recognitionResult.Text}";
+          System.Diagnostics.Debug.WriteLine($"Result: {recognitionResult.Text}");
         }
         else
         {
@@ -65,6 +90,7 @@ namespace VoiceRecognitionMaui
       catch (Exception ex)
       {
         lblRecognition.Text = $"Error: {ex.Message}";
+        System.Diagnostics.Debug.WriteLine($"Exception: {ex}");
       }
       finally
       {
